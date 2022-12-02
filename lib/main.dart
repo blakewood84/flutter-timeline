@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
 import 'package:timelines/timelines.dart';
 
 import 'dart:developer' as devtools;
 
-@immutable
 class Testimony {
   final String type;
   final String description;
@@ -12,7 +11,9 @@ class Testimony {
   final DateTime created;
   final bool isUpdated;
 
-  const Testimony({
+  bool left = true;
+
+  Testimony({
     required this.type,
     required this.description,
     required this.imageUrl,
@@ -29,34 +30,6 @@ class Testimony {
 // ]
 
 final testimonies = [
-  Testimony(
-    isUpdated: true,
-    type: 'healing',
-    description: 'My Description',
-    imageUrl: 'images/media-placeholder.png',
-    created: DateTime.parse('2022-12-12'),
-  ),
-  Testimony(
-    isUpdated: false,
-    type: 'healing',
-    description: 'My Description',
-    imageUrl: '',
-    created: DateTime.parse('2022-12-05'),
-  ),
-  Testimony(
-    isUpdated: false,
-    type: 'healing',
-    description: 'My Description',
-    imageUrl: '',
-    created: DateTime.parse('2022-12-04'),
-  ),
-  Testimony(
-    isUpdated: false,
-    type: 'healing',
-    description: 'My Description',
-    imageUrl: '',
-    created: DateTime.parse('2022-12-01'),
-  ),
   Testimony(
     isUpdated: true,
     type: 'healing',
@@ -80,7 +53,7 @@ final testimonies = [
   ),
   Testimony(
     isUpdated: false,
-    type: 'salvation',
+    type: 'deliverance',
     description: 'My Description',
     imageUrl: '',
     created: DateTime.parse('2022-10-30'),
@@ -94,7 +67,7 @@ final testimonies = [
   ),
   Testimony(
     isUpdated: false,
-    type: 'salvation',
+    type: 'testimony',
     description: 'My Description',
     imageUrl: '',
     created: DateTime.parse('2022-10-25'),
@@ -137,9 +110,25 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool left = true;
-  final testimonies2 = <Map<String, List>>[];
 
-  // once switch sides create a new object add to array
+  late final List<Testimony> list;
+
+  @override
+  void initState() {
+    super.initState();
+    list = layout();
+  }
+
+  List<Testimony> layout() {
+    return testimonies.map((testimony) {
+      // Switch sides once you hit an isUpdated testimony
+      if (testimony.isUpdated) {
+        left = !left;
+      }
+      // Asign the side to the testimony
+      return testimony..left = left;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -149,87 +138,120 @@ class _HomeState extends State<Home> {
       body: SafeArea(
         child: SizedBox(
           width: size.width,
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(
-                width: 1,
-                color: Colors.red,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 100),
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      width: 1,
-                      color: Colors.purple,
-                    ),
-                  ),
-                  child: FixedTimeline.tileBuilder(
-                    mainAxisSize: MainAxisSize.min,
-                    verticalDirection: VerticalDirection.down,
-                    builder: TimelineTileBuilder.connectedFromStyle(
-                      // Left Side
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 100),
+              FixedTimeline.tileBuilder(
+                mainAxisSize: MainAxisSize.min,
+                verticalDirection: VerticalDirection.down,
+                builder: TimelineTileBuilder.connectedFromStyle(
+                  // Left Side
+                  oppositeContentsBuilder: (context, index) {
+                    final testimony = list[index];
+                    if (!testimony.left) return const SizedBox.shrink();
 
-                      // Right Side
-                      contentsBuilder: (context, index) {
-                        final testimony = testimonies[index];
-                        final date = testimony.created;
-                        final dateText = DateFormat('MMMM dd, yyyy').format(date);
+                    final date = testimony.created;
+                    final dateText = DateFormat('MMMM dd, yyyy').format(date);
 
-                        // switch sides as soon as is updated true
-
-                        if (!testimony.isUpdated) {
-                          return SizedBox(
-                            height: 50,
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.pin_drop,
-                                ),
-                                Text(testimony.type)
-                              ],
+                    if (!testimony.isUpdated) {
+                      return SizedBox(
+                        height: 50,
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.pin_drop,
                             ),
-                          );
-                        }
+                            Text(testimony.type)
+                          ],
+                        ),
+                      );
+                    }
 
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 20.0, top: 20.0),
-                          child: Card(
-                            child: Column(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      width: 1,
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                  constraints: const BoxConstraints.expand(height: 70.0),
-                                  width: double.infinity,
-                                  child: Image.asset(
-                                    'images/media-placeholder.png',
-                                    fit: BoxFit.cover,
-                                  ),
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 20.0, top: 20.0),
+                      child: Card(
+                        child: Column(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  width: 1,
+                                  color: Colors.red,
                                 ),
-                                Text(testimony.type),
-                                Text(testimony.description),
-                                Text(dateText),
-                              ],
+                              ),
+                              constraints: const BoxConstraints.expand(height: 70.0),
+                              width: double.infinity,
+                              child: Image.asset(
+                                'images/media-placeholder.png',
+                                fit: BoxFit.cover,
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                      connectorStyleBuilder: (context, index) => ConnectorStyle.solidLine,
-                      indicatorStyleBuilder: (context, index) => IndicatorStyle.dot,
-                      itemCount: testimonies.length,
-                    ),
-                  ),
-                )
-              ],
-            ),
+                            Text(testimony.type),
+                            Text(testimony.description),
+                            Text(dateText),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  // Right Side
+                  contentsBuilder: (context, index) {
+                    final testimony = list[index];
+                    if (testimony.left) return const SizedBox.shrink();
+
+                    final date = testimony.created;
+                    final dateText = DateFormat('MMMM dd, yyyy').format(date);
+
+                    // switch sides as soon as is updated true
+
+                    if (!testimony.isUpdated) {
+                      return SizedBox(
+                        height: 50,
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.pin_drop,
+                            ),
+                            Text(testimony.type)
+                          ],
+                        ),
+                      );
+                    }
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 20.0, top: 20.0),
+                      child: Card(
+                        child: Column(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  width: 1,
+                                  color: Colors.red,
+                                ),
+                              ),
+                              constraints: const BoxConstraints.expand(height: 70.0),
+                              width: double.infinity,
+                              child: Image.asset(
+                                'images/media-placeholder.png',
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            Text(testimony.type),
+                            Text(testimony.description),
+                            Text(dateText),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  connectorStyleBuilder: (context, index) => ConnectorStyle.solidLine,
+                  indicatorStyleBuilder: (context, index) => IndicatorStyle.dot,
+                  itemCount: list.length,
+                ),
+              )
+            ],
           ),
         ),
       ),
